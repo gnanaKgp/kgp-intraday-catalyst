@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  nse-catalyst-terminal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nse-catalyst-terminal
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8085}:8085"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+

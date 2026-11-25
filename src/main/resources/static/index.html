@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSE Catalyst Terminal — Institutional Event-Driven Screener</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo-mark">CT</div>
+            <div>
+                <h1>NSE CATALYST TERMINAL</h1>
+                <p class="subtitle">Institutional Event-Driven Screener &amp; Alert Engine</p>
+            </div>
+        </div>
+
+        <div class="topbar-status">
+            <span class="pill" id="ssePill"><span class="dot"></span><span id="sseText">SSE CONNECTING</span></span>
+            <span class="pill" id="pollerPill"><span class="dot"></span><span id="pollerText">POLLER IDLE</span></span>
+            <span class="pill" id="dhanPill"><span class="dot"></span><span id="dhanText">DHAN: CHECKING</span></span>
+            <span class="pill" id="geminiPill">AI: CHECKING</span>
+            <span class="clock" id="clockIst">--:--:-- IST</span>
+        </div>
+
+        <div class="topbar-actions">
+            <button class="btn btn-ghost" id="btnOpenBacktest" title="Backtest strategy on historical data">Backtest</button>
+            <button class="btn btn-ghost" id="btnOpenLogs" title="View live server logs">Live Logs</button>
+            <button class="btn btn-ghost" id="btnTelegramTest" title="Send test alert to Telegram">Telegram Test</button>
+            <button class="btn btn-ghost" id="btnExportCsv">Export CSV</button>
+            <button class="btn btn-primary" id="btnOpenAnalyze">+ Analyze Filing</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="kpi-grid">
+            <article class="kpi-card tier1-accent">
+                <span class="kpi-label">Tier 1 Today (90–100)</span>
+                <strong class="kpi-value" id="kpiTier1">0</strong>
+                <span class="kpi-sub">High-conviction / circuit potential</span>
+            </article>
+            <article class="kpi-card tier2-accent">
+                <span class="kpi-label">Tier 2 Today (70–89)</span>
+                <strong class="kpi-value" id="kpiTier2">0</strong>
+                <span class="kpi-sub">Strong intraday movers</span>
+            </article>
+            <article class="kpi-card tier3-accent">
+                <span class="kpi-label">Tier 3 Today (40–69)</span>
+                <strong class="kpi-value" id="kpiTier3">0</strong>
+                <span class="kpi-sub">Needs technical confirmation</span>
+            </article>
+            <article class="kpi-card info-accent">
+                <span class="kpi-label">Firewall Efficiency</span>
+                <strong class="kpi-value" id="kpiDropRate">0%</strong>
+                <span class="kpi-sub" id="kpiCountsSub">0 seen / 0 AI scored</span>
+            </article>
+            <article class="kpi-card neutral-accent">
+                <span class="kpi-label">Archive Ledger</span>
+                <strong class="kpi-value" id="kpiPersisted">0</strong>
+                <span class="kpi-sub" id="kpiAlertsSub">0 Telegram alerts dispatched</span>
+            </article>
+        </section>
+
+        <section class="funnel-panel">
+            <div class="funnel-header">
+                <div>
+                    <h2>3-Stage Intraday Funnel — Top Setups (&gt; 75 Composite Score)</h2>
+                    <div class="funnel-stages" id="funnelStagesBar">
+                        <span class="stage-chip" data-stage="OVERNIGHT_CATALYST">8:00–9:00 Catalyst</span>
+                        <span class="stage-chip" data-stage="PRE_MARKET_FILTER">9:07–9:14 Pre-Open</span>
+                        <span class="stage-chip" data-stage="OPENING_RANGE_LOCK">9:15–9:30 ORB Lock</span>
+                        <span class="stage-chip" data-stage="LIVE_RANKER">9:30–2:30 Live Ranker</span>
+                        <span class="stage-chip" data-stage="AUTO_CUTOFF">3:15 Auto-Cutoff</span>
+                    </div>
+                </div>
+                <div class="funnel-controls">
+                    <label class="inline-field">Capital (₹)
+                        <input type="number" id="funnelCapital" value="100000" min="1000" step="5000">
+                    </label>
+                    <label class="inline-field">Risk %
+                        <input type="number" id="funnelRiskPct" value="1.0" min="0.1" max="5" step="0.1">
+                    </label>
+                    <label class="checkbox-pill">
+                        <input type="checkbox" id="funnelShowAll">
+                        <span>Show All / Disqualified</span>
+                    </label>
+                    <button class="btn btn-primary btn-sm" id="btnRunFunnelScan">Run Funnel Scan</button>
+                </div>
+            </div>
+            <div class="funnel-meta muted" id="funnelMetaLabel">Loading 3-stage funnel state...</div>
+            <div id="funnelFeed" class="funnel-grid">
+                <div class="empty-state">Click <strong>Run Funnel Scan</strong> to rank liquid Nifty 500 setups with DhanHQ technicals + 4 guardrails.</div>
+            </div>
+        </section>
+
+        <section class="filter-bar">
+            <div class="pill-group" id="tierFilters">
+                <button class="filter-pill active" data-tier="">All Tiers</button>
+                <button class="filter-pill" data-tier="TIER_1">Tier 1 (90+)</button>
+                <button class="filter-pill" data-tier="TIER_2">Tier 2 (70–89)</button>
+                <button class="filter-pill" data-minscore="70">Actionable (70+)</button>
+                <button class="filter-pill" data-tier="TIER_3">Tier 3 (40–69)</button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="filterDirection" aria-label="Direction Filter">
+                    <option value="">All Directions</option>
+                    <option value="BULLISH">BULLISH</option>
+                    <option value="BEARISH">BEARISH</option>
+                    <option value="NEUTRAL">NEUTRAL</option>
+                </select>
+                <select id="filterCategory" aria-label="Category Filter">
+                    <option value="">All Categories</option>
+                    <option value="ORDER_WIN">ORDER_WIN</option>
+                    <option value="JOINT_VENTURE">JOINT_VENTURE</option>
+                    <option value="EARNINGS">EARNINGS</option>
+                    <option value="REGULATORY">REGULATORY</option>
+                    <option value="CORPORATE_ACTION">CORPORATE_ACTION</option>
+                    <option value="BLOCK_DEAL">BLOCK_DEAL</option>
+                    <option value="NOISE">NOISE</option>
+                </select>
+                <input type="text" id="filterSymbol" placeholder="Search ticker or company...">
+                <input type="date" id="filterFrom" title="From date">
+                <input type="date" id="filterTo" title="To date">
+                <label class="checkbox-pill">
+                    <input type="checkbox" id="filterWatchlistOnly">
+                    <span>Watchlist Only</span>
+                </label>
+                <button class="btn btn-ghost btn-sm" id="btnResetFilters">Reset</button>
+            </div>
+        </section>
+
+        <section class="workspace-grid">
+            <div class="feed-column">
+                <div class="section-header">
+                    <h2>Live Institutional Catalyst Tape</h2>
+                    <span class="muted" id="feedCountLabel">0 filings</span>
+                </div>
+                <div id="catalystFeed" class="catalyst-feed">
+                    <div class="empty-state">Waiting for corporate filings or click <strong>+ Analyze Filing</strong> to test the rubric.</div>
+                </div>
+            </div>
+
+            <aside class="sidebar-column">
+                <div class="panel">
+                    <div class="section-header">
+                        <h3>Watchlist</h3>
+                        <span class="muted" id="watchlistCount">0 symbols</span>
+                    </div>
+                    <form id="watchlistForm" class="watchlist-form">
+                        <input type="text" id="watchlistSymbolInput" placeholder="Ticker (e.g. RVNL)" maxlength="20" required>
+                        <button type="submit" class="btn btn-primary btn-sm">Pin</button>
+                    </form>
+                    <ul id="watchlistItems" class="watchlist-list"></ul>
+                </div>
+
+                <div class="panel">
+                    <div class="section-header">
+                        <h3>Pipeline Telemetry</h3>
+                        <button class="btn btn-ghost btn-xs" id="btnRefreshEvents">Refresh</button>
+                    </div>
+                    <div id="eventsFeed" class="events-feed"></div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <div class="modal-backdrop" id="analyzeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>On-Demand Institutional Filing Analyzer</h3>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
+            </div>
+
+            <div class="preset-row">
+                <span class="muted">Presets:</span>
+                <button type="button" class="btn btn-ghost btn-xs" data-preset="order">Tier 1 Order Win (RVNL)</button>
+                <button type="button" class="btn btn-ghost btn-xs" data-preset="shock">Bearish CFO Shock</button>
+                <button type="button" class="btn btn-ghost btn-xs" data-preset="earnings">Earnings Beat</button>
+                <button type="button" class="btn btn-ghost btn-xs" data-preset="noise">Routine Noise</button>
+            </div>
+
+            <form id="analyzeForm" class="analyze-form">
+                <div class="form-row">
+                    <label>Symbol
+                        <input type="text" id="inSymbol" placeholder="e.g. RVNL">
+                    </label>
+                    <label>Company Name *
+                        <input type="text" id="inCompany" required placeholder="e.g. Rail Vikas Nigam Limited">
+                    </label>
+                    <label>Market Cap Override (₹ Cr)
+                        <input type="number" step="0.01" id="inMcap" placeholder="Optional (e.g. 2500)">
+                    </label>
+                </div>
+                <label>Headline
+                    <input type="text" id="inHeadline" placeholder="Brief announcement subject">
+                </label>
+                <label>Filing Text / Disclosure Body
+                    <textarea id="inText" rows="6" placeholder="Paste NSE/BSE filing text here (or upload a PDF below)..."></textarea>
+                </label>
+                <label>Or Upload Filing PDF
+                    <input type="file" id="inPdfFile" accept="application/pdf">
+                </label>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" id="btnCancelModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitAnalyze">Score Filing</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="backtestModal">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h3>Historical Strategy Backtest &amp; Actual Outcome Analysis</h3>
+                <button class="modal-close" id="btnCloseBacktest">&times;</button>
+            </div>
+            <form id="backtestForm" class="backtest-form">
+                <div class="backtest-inputs">
+                    <label>From Date
+                        <input type="date" id="btFromDate" required>
+                    </label>
+                    <label>To Date
+                        <input type="date" id="btToDate" required>
+                    </label>
+                    <label>Symbols (comma-separated, blank = auto)
+                        <input type="text" id="btSymbols" placeholder="e.g. JWL,RVNL,BEL,LT,SBIN">
+                    </label>
+                    <label>Capital (₹)
+                        <input type="number" id="btCapital" value="100000" min="1000" step="5000">
+                    </label>
+                    <label>Risk %
+                        <input type="number" id="btRiskPct" value="1.0" min="0.1" max="5" step="0.1">
+                    </label>
+                    <label>Assumed Catalyst (opt.)
+                        <input type="number" id="btAssumedCat" placeholder="Blank = H2 news; e.g. 80" min="0" max="100">
+                    </label>
+                </div>
+                <div class="backtest-actions">
+                    <button type="submit" class="btn btn-primary btn-sm" id="btnRunBacktest">Run Historical Backtest</button>
+                    <label class="checkbox-pill">
+                        <input type="checkbox" id="btShowFiltered">
+                        <span>Show Guardrail-Filtered Setups</span>
+                    </label>
+                    <span class="muted" id="btMeta"></span>
+                </div>
+            </form>
+            <div id="btSummaryGrid" class="bt-kpi-grid"></div>
+            <div class="bt-table-wrap">
+                <table class="bt-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Symbol</th>
+                            <th>Side</th>
+                            <th>Time</th>
+                            <th>Score</th>
+                            <th>Entry</th>
+                            <th>SL</th>
+                            <th>Target</th>
+                            <th>Exit</th>
+                            <th>Outcome</th>
+                            <th>P&amp;L (₹ / R)</th>
+                            <th>MFE / MAE</th>
+                            <th>Notes / Guardrails</th>
+                        </tr>
+                    </thead>
+                    <tbody id="btTableBody">
+                        <tr><td colspan="13" class="muted">Configure dates/symbols and click <strong>Run Historical Backtest</strong>.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="logsModal">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h3>Live Application Logs <span class="muted" id="logsMeta"></span></h3>
+                <button class="modal-close" id="btnCloseLogs">&times;</button>
+            </div>
+            <div class="logs-toolbar">
+                <select id="logLevelFilter" aria-label="Log Level">
+                    <option value="ALL">All Levels</option>
+                    <option value="WARN_ERROR">WARN &amp; ERROR</option>
+                    <option value="ERROR">ERROR Only</option>
+                    <option value="INFO">INFO Only</option>
+                </select>
+                <select id="logLineCount" aria-label="Line Count">
+                    <option value="150">Last 150 lines</option>
+                    <option value="300" selected>Last 300 lines</option>
+                    <option value="600">Last 600 lines</option>
+                </select>
+                <label class="checkbox-pill">
+                    <input type="checkbox" id="logAutoRefresh" checked>
+                    <span>Auto-refresh (2s)</span>
+                </label>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnRefreshLogs">Refresh</button>
+            </div>
+            <div id="logsConsole" class="log-console">Loading logs...</div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
