@@ -1,0 +1,21 @@
+[Unit]
+Description=NSE Institutional Catalyst Terminal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/nse-catalyst-terminal
+Environment="PORT=8081"
+ExecStart=/usr/bin/java -Xms128m -Xmx384m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Duser.timezone=Asia/Kolkata -jar /opt/nse-catalyst-terminal/nse-catalyst-terminal-1.0.0.jar
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nse-catalyst-terminal
+
+[Install]
+WantedBy=multi-user.target
+
